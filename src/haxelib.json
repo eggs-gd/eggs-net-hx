@@ -1,0 +1,15 @@
+{
+	"name": "eggs-net",
+	"license": "MIT",
+	"tags": ["net","socket","eggs"],
+	"description": "A simple connector framework for haxe",
+	"contributors": ["eggs"],
+	"releasenote": "Initial version. Basic mechanism",
+	"version": "0.0.1-alpha",
+	"url": "https://github.com/eggs-gd/eggs-net-hx",
+	"dependencies": 
+	{
+		"eggs-utils": "",
+		"msignal": ""
+	}
+}

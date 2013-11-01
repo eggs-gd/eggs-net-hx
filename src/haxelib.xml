@@ -1,0 +1,10 @@
+<project name="eggs-net" url="https://github.com/eggs-gd/eggs-net-hx" license="MIT">
+	<user name="eggs"/>
+	<description><![CDATA[A connector framework for haxe]]></description>
+	<version name="0.0.1-alpha"><![CDATA[Initial version. Basic mechanism]]></version>
+	<depends name="eggs-utils"/>
+	<depends name="msignal"/>
+	<tag v="net"/>
+	<tag v="socket"/>
+	<tag v="eggs"/>
+</project>
