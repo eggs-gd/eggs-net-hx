@@ -17,6 +17,7 @@
   <classpaths>
     <class path="src" />
     <class path="test" />
+    <class path="..\eggs-utils-hx\src" />
   </classpaths>
   <!-- Build options -->
   <build>
@@ -31,6 +32,8 @@
     <library name="msignal" />
     <library name="munit" />
     <library name="hamcrest" />
+    <library name="openfl" />
+    <library name="openfl-native" />
   </haxelib>
   <!-- Class files to compile (other referenced classes will automatically be included) -->
   <compileTargets>
@@ -51,7 +54,7 @@
   <postBuildCommand alwaysRun="False" />
   <!-- Other project options -->
   <options>
-    <option showHiddenPaths="False" />
+    <option showHiddenPaths="True" />
     <option testMovie="Custom" />
     <option testMovieCommand="munit test &amp;&amp; pause" />
   </options>

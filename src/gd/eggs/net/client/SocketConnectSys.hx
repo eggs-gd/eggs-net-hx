@@ -6,6 +6,7 @@ import haxe.Json;
 import haxe.Timer;
 import haxe.io.Bytes;
 import haxe.io.Eof;
+
 import sys.net.Host;
 import sys.net.Socket;
 
@@ -133,5 +134,5 @@ class SocketConnectSys<T:IMessage> extends BaseConnector<T> implements IConnecto
 	function onSocketError(event:Dynamic) {
 		signalConectError.dispatch( { message:Json.stringify(event), config:_connectConfig } );
 	}
-	
+
 }

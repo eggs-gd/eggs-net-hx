@@ -1,18 +1,52 @@
 ## Flash 9+
 -main TestMain
 
--lib msignal
 -lib munit
--lib mcover
 -lib hamcrest
+-lib msignal
+-lib openfl
 
 -cp src
+-cp ../eggs-utils-hx/src
 -cp test
 
--swf-version 11
--swf target/build/as3_test.swf
+-swf-version 11.8
+-swf target/test/build/as3_test.swf
 
 -debug
 -D fdb
 
 --next
+
+## Neko
+-main TestMain
+-lib munit
+-lib hamcrest
+-lib msignal
+-lib openfl
+-lib openfl-native
+--remap flash:flash
+
+-cp src
+-cp ../eggs-utils-hx/src
+-cp test
+-neko target/test/build/neko_test.n
+
+--next
+
+## CPP
+#-main TestMain
+#-lib munit
+#-lib hamcrest
+#-lib msignal
+#-lib openfl
+#-lib openfl-native
+#--remap flash:flash
+
+#-cp src
+#-cp ../eggs-utils-hx/src
+#-cp test
+#-D HXCPP_M64
+#-cpp target/test/build/cpp_test
+
+#--next

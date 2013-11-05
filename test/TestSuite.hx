@@ -1,9 +1,7 @@
 import massive.munit.TestSuite;
 
 import ExampleTest;
-import test.gd.eggs.mvc.model.AJsonModelAdvancedTest;
-import test.gd.eggs.mvc.model.AJsonModelTest;
-import test.gd.eggs.utills.DestroyUtillsTest;
+import gd.eggs.net.client.ServerProxyTest;
 
 /**
  * Auto generated Test Suite for MassiveUnit.
@@ -18,8 +16,6 @@ class TestSuite extends massive.munit.TestSuite
 		super();
 
 		add(ExampleTest);
-		add(test.gd.eggs.mvc.model.AJsonModelAdvancedTest);
-		add(test.gd.eggs.mvc.model.AJsonModelTest);
-		add(test.gd.eggs.utills.DestroyUtillsTest);
+		add(gd.eggs.net.client.ServerProxyTest);
 	}
 }
