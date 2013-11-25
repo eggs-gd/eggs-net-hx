@@ -81,6 +81,9 @@ class ServerProxy implements IInitialize {
 		signalLog = new Signal1<ConnectorEvent>();
 		signalData = new Signal1<Dynamic>();
 		
+		_decoder.signalDone.add(onMessageParsed);
+		
+		
 		isInited = true;
 	}
 	
@@ -147,7 +150,10 @@ class ServerProxy implements IInitialize {
 	
 	function onConnectorData(data:ByteArray) {
 		_decoder.parse(data);
-		signalData.dispatch(_decoder.message);
+	}
+	
+	function onMessageParsed(data:Dynamic) {
+		signalData.dispatch(data);
 	}
 	
 }

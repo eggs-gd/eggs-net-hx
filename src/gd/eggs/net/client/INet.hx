@@ -32,13 +32,21 @@ interface IDecoder {
 	//	PARAMETERS
 	//=========================================================================
 	
-	var message(default, null):Dynamic;
+	// errors
+	var signalInvalidDataType(default, null):Signal0;
+	var signalInvalidPackageSize(default, null):Signal0;
+	
+	// status
+	var signalInProgress(default, null):Signal0;
+	var signalReceivingHeader(default, null):Signal0;
+	
+	var signalDone(default, null):Signal1<Dynamic>;
 	
 	//=========================================================================
 	//	METHODS
 	//=========================================================================
 	
-	function parse(data:ByteArray):Bool;
+	function parse(data:ByteArray):Void;
 	function pack(message:Dynamic):ByteArray;
 }
 
