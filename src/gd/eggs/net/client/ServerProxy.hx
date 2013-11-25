@@ -88,6 +88,7 @@ class ServerProxy implements IInitialize {
 	}
 	
 	public function destroy() {
+		// TODO destroy konnector and decoder
 		_messageQueue = DestroyUtils.destroy(_messageQueue);
 		
 		signalConnected = DestroyUtils.destroy(signalConnected);
@@ -107,8 +108,6 @@ class ServerProxy implements IInitialize {
 		}
 		
 		_connector = CONNECTOR_BY_TYPE[_currentConnection.type];
-		
-		_connector.init();
 		
 		_connector.signalConectError.add(onConnectorError);
 		_connector.signalConnected.add(onConnectorConnected);
