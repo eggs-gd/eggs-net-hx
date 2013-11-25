@@ -1,6 +1,7 @@
 package gd.eggs.net.client;
 
-import gd.eggs.net.client.INet;
+import flash.utils.ByteArray;
+import gd.eggs.net.client.INet.ConnectorEvent;
 import gd.eggs.utils.DestroyUtils;
 import gd.eggs.utils.IInitialize;
 import gd.eggs.utils.Validate;
@@ -9,7 +10,7 @@ import msignal.Signal.Signal1;
 /**
  * @author Dukobpa3
  */
-class BaseConnector<T:IMessage> implements IInitialize {
+class BaseConnector implements IInitialize {
 	//=========================================================================
 	//	PARAMETERS
 	//=========================================================================
@@ -21,22 +22,13 @@ class BaseConnector<T:IMessage> implements IInitialize {
 	public var signalConnected(default, null):Signal1<ConnectorEvent>;
 	public var signalClosed(default, null):Signal1<ConnectorEvent>;
 	public var signalLog(default, null):Signal1<ConnectorEvent>;
-	public var signalData(default, null):Signal1<T>;
-	
-	//TODO тут ему не место, вынести в серверПрокси. Коннектор должен получать любые данные
-	// либо переписать таким образом чтобы можно было обойтись без сервер прокси.
-	public var messageClass(default, null):Class<T>;
+	public var signalData(default, null):Signal1<ByteArray>;
 	
 	//=========================================================================
 	//	CONSTRUCTOR
 	//=========================================================================
 	
-	public function new(cls:Class<T>) {
-		#if debug
-		if(Validate.isNull(cls)) throw "cls is null";
-		#end
-		
-		messageClass = cls;
+	public function new() {
 		init();
 	}
 	
@@ -49,7 +41,7 @@ class BaseConnector<T:IMessage> implements IInitialize {
 		signalConnected = new Signal1<ConnectorEvent>();
 		signalClosed = new Signal1<ConnectorEvent>();
 		signalLog = new Signal1<ConnectorEvent>();
-		signalData = new Signal1<T>();
+		signalData = new Signal1<ByteArray>();
 		
 		isInited = true;
 	}

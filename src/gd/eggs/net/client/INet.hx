@@ -2,6 +2,8 @@ package gd.eggs.net.client;
 
 import gd.eggs.utils.IInitialize;
 import msignal.Signal;
+import flash.utils.ByteArray;
+
 
 /**
  * @author Dukobpa3
@@ -24,22 +26,23 @@ typedef ConnectorEvent = {
 	config:ConnectConfig
 }
 
-interface IMessage {
+interface IDecoder {
+	
+	//=========================================================================
+	//	PARAMETERS
+	//=========================================================================
+	
+	var message(default, null):Dynamic;
 	
 	//=========================================================================
 	//	METHODS
 	//=========================================================================
 	
-	#if flash
-	function parse(data:flash.utils.ByteArray):Bool;
-	function pack():flash.utils.ByteArray;
-	#elseif sys
-	function parse(data:haxe.io.Bytes):Bool;
-	function pack():haxe.io.Bytes;
-	#end
+	function parse(data:ByteArray):Bool;
+	function pack(message:Dynamic):ByteArray;
 }
 
-interface IConnector<T:IMessage> extends IInitialize {
+interface IConnector extends IInitialize {
 	
 	//=========================================================================
 	//	VARIABLES
@@ -47,19 +50,19 @@ interface IConnector<T:IMessage> extends IInitialize {
 	
 	var isOnline(default, null):Bool;
 	
-	var messageClass(default, null):Class<T>;
-	
 	var signalConectError(default, null):Signal1<ConnectorEvent>;
 	var signalConnected(default, null):Signal1<ConnectorEvent>;
 	var signalClosed(default, null):Signal1<ConnectorEvent>;
 	var signalLog(default, null):Signal1<ConnectorEvent>;
-	var signalData(default, null):Signal1<T>;
+	var signalData(default, null):Signal1<ByteArray>;
 	
 	//=========================================================================
 	//	METHODS
 	//=========================================================================
 	
 	function connect(config:ConnectConfig):Void;
-	function send(data:T):Void;
+	
+	function send(data:flash.utils.ByteArray):Void;
+	
 	function close():Void;
 }

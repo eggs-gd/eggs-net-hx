@@ -1,5 +1,6 @@
 package gd.eggs.net.client;
 
+import flash.utils.ByteArray;
 import gd.eggs.net.client.INet;
 import gd.eggs.utils.Validate;
 import haxe.Json;
@@ -19,7 +20,7 @@ import neko.vm.Thread;
 /**
  * @author Dukobpa3
  */
-class SocketConnectSys<T:IMessage> extends BaseConnector<T> implements IConnector<T> {
+class SocketConnectSys extends BaseConnector implements IConnector {
 	
 	//=========================================================================
 	//	PARAMETERS
@@ -32,12 +33,9 @@ class SocketConnectSys<T:IMessage> extends BaseConnector<T> implements IConnecto
 	//	CONSTRUCTOR
 	//=========================================================================
 	
-	public function new(cls:Class<T>) {
-		#if debug
-		if(Validate.isNull(cls)) throw "cls is null";
-		#end
+	public function new() {
 		
-		super(cls);
+		super();
 	}
 	
 	//=========================================================================
@@ -73,12 +71,11 @@ class SocketConnectSys<T:IMessage> extends BaseConnector<T> implements IConnecto
 		signalClosed.dispatch( { message:"socket closed", config:_connectConfig } );
 	}
 	
-	public function send(message:T) {
+	public function send(data:ByteArray) {
 		try {
-			var bytes:Bytes = message.pack();
-			_socket.output.writeBytes(bytes, 0, bytes.length);
+			_socket.output.writeBytes(data, 0, data.length);
 			
-			log({sended:message});
+			log({sended:data});
 		} catch (error:Dynamic) {
 			onSocketError(error);
 		}
@@ -127,8 +124,8 @@ class SocketConnectSys<T:IMessage> extends BaseConnector<T> implements IConnecto
 		signalConnected.dispatch( { message:"Connected", config:_connectConfig } );
 	}
 	
-	function onSocketData(message:T) {
-		signalData.dispatch(message);
+	function onSocketData(data:ByteArray) {
+		signalData.dispatch(data);
 	}
 	
 	function onSocketError(event:Dynamic) {

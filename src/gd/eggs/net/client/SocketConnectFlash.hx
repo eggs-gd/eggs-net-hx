@@ -15,7 +15,7 @@ import haxe.Json;
  * @author Dukobpa3
  */
 @:generic
-class SocketConnectFlash<T:IMessage> extends BaseConnector<T> implements IConnector<T> {
+class SocketConnectFlash extends BaseConnector implements IConnector {
 	
 	//=========================================================================
 	//	PARAMETERS
@@ -28,12 +28,8 @@ class SocketConnectFlash<T:IMessage> extends BaseConnector<T> implements IConnec
 	//	CONSTRUCTOR
 	//=========================================================================
 	
-	public function new(cls:Class<T>) {
-		#if debug
-		if(Validate.isNull(cls)) throw "cls is null";
-		#end
-		
-		super(cls);
+	public function new() {
+		super();
 	}
 	
 	//=========================================================================
@@ -72,7 +68,7 @@ class SocketConnectFlash<T:IMessage> extends BaseConnector<T> implements IConnec
 		isOnline = false;
 	}
 	
-	public function send(message:T) {
+	public function send(message:ByteArray) {
 		#if debug
 		if(Validate.isNull(message)) throw "message is null";
 		#end
@@ -82,10 +78,9 @@ class SocketConnectFlash<T:IMessage> extends BaseConnector<T> implements IConnec
 			if (!isOnline) throw "not connected";
 			#end
 			
-			var ba:ByteArray = message.pack();
-			ba.position = 0;
+			message.position = 0;
 			
-			_socket.writeBytes(ba, 0, ba.length);
+			_socket.writeBytes(message, 0, message.length);
 			_socket.flush();
 			
 			var arr:Array<Dynamic> = ["sended", message];
@@ -124,12 +119,9 @@ class SocketConnectFlash<T:IMessage> extends BaseConnector<T> implements IConnec
 		var data:ByteArray = new ByteArray();
 		_socket.readBytes(data);
 		
-		var msg = Type.createInstance(messageClass, []);
-		msg.parse(data);
-		
-		var arr:Array<Dynamic> = ["received", msg];
+		var arr:Array<Dynamic> = ["received", data];
 		log(arr);
-		signalData.dispatch(msg);
+		signalData.dispatch(data);
 	}
 	
 }

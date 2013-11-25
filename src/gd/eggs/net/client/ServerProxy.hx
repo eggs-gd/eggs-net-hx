@@ -1,5 +1,6 @@
 package gd.eggs.net.client;
 
+import flash.utils.ByteArray;
 import gd.eggs.net.client.INet;
 import gd.eggs.utils.DestroyUtils;
 import gd.eggs.utils.IInitialize;
@@ -7,21 +8,21 @@ import gd.eggs.utils.Validate;
 import msignal.Signal.Signal1;
 
 #if flash
-typedef SocketConnect<T:IMessage> = SocketConnectFlash<T>;
+typedef SocketConnect = SocketConnectFlash;
 #else
-typedef SocketConnect<T:IMessage> = SocketConnectSys<T>;
+typedef SocketConnect = SocketConnectSys;
 #end
 
 /**
  * @author Dukobpa3
  */
-class ServerProxy<T:IMessage> implements IInitialize {
+class ServerProxy implements IInitialize {
 	
 	//=========================================================================
 	//	CONSTANTS
 	//=========================================================================
 	
-	var CONNECTOR_BY_TYPE:Map<EnumValue, IConnector<T>>;
+	var CONNECTOR_BY_TYPE:Map<EnumValue, IConnector>;
 	
 	//=========================================================================
 	//	PARAMETERS
@@ -33,7 +34,7 @@ class ServerProxy<T:IMessage> implements IInitialize {
 	public var signalDisconnected(default, null):Signal1<ConnectorEvent>;
 	public var signalError(default, null):Signal1<ConnectorEvent>;
 	public var signalLog(default, null):Signal1<ConnectorEvent>;
-	public var signalData(default, null):Signal1<T>;
+	public var signalData(default, null):Signal1<Dynamic>;
 	
 	/**
 	 * Список доступных вариантов для коннекта
@@ -41,24 +42,26 @@ class ServerProxy<T:IMessage> implements IInitialize {
 	var _connections(default, null):Array<ConnectConfig>;
 	var _currentConnection:ConnectConfig;
 	
-	var _connector(default, null):IConnector<T>;
-	var _messageQueue(default, null):Array<T>;
+	var _connector(default, null):IConnector;
+	var _messageQueue(default, null):Array<Dynamic>;
+	
+	var _decoder(default, null):IDecoder;
 	
 	//=========================================================================
 	//	CONSTRUCTOR
 	//=========================================================================
 	
-	public function new(messageClass:Class<T>, connections:Array<ConnectConfig>) {
+	public function new(decoder:IDecoder, connections:Array<ConnectConfig>) {
 		#if debug
-		if(Validate.isNull(messageClass)) throw "cls is null";
+		if(Validate.isNull(decoder)) throw "decoder is null";
 		if(Validate.isNull(connections)) throw "connections is null";
 		#end
 		
 		CONNECTOR_BY_TYPE = [ 
-			ConnectionType.http => new HttpConnect(messageClass), 
-			ConnectionType.socket => new SocketConnect(messageClass), 
-			ConnectionType.local => new LocalConnect(messageClass) 
+			ConnectionType.socket => new SocketConnect(), 
 		];
+		
+		_decoder = decoder;
 		
 		_connections = connections;
 		
@@ -76,7 +79,7 @@ class ServerProxy<T:IMessage> implements IInitialize {
 		signalDisconnected = new Signal1<ConnectorEvent>();
 		signalError = new Signal1<ConnectorEvent>();
 		signalLog = new Signal1<ConnectorEvent>();
-		signalData = new Signal1<T>();
+		signalData = new Signal1<Dynamic>();
 		
 		isInited = true;
 	}
@@ -113,13 +116,13 @@ class ServerProxy<T:IMessage> implements IInitialize {
 		_connector.connect(_currentConnection);
 	}
 	
-	public function sendMessage(message:T) {
+	public function sendMessage(message:Dynamic) {
 		#if debug
 		if(Validate.isNull(message)) throw "message is null";
 		#end
 		
 		//TODO Вкрутить очередь сообщений и таймаут между отправкой
-		_connector.send(message);
+		_connector.send(_decoder.pack(message));
 	}
 	
 	//=========================================================================
@@ -142,8 +145,9 @@ class ServerProxy<T:IMessage> implements IInitialize {
 		signalLog.dispatch(event);
 	}
 	
-	function onConnectorData(message:T) {
-		signalData.dispatch(message);
+	function onConnectorData(data:ByteArray) {
+		_decoder.parse(data);
+		signalData.dispatch(_decoder.message);
 	}
 	
 }
