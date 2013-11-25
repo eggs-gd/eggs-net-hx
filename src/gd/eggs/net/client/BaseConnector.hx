@@ -23,6 +23,8 @@ class BaseConnector<T:IMessage> implements IInitialize {
 	public var signalLog(default, null):Signal1<ConnectorEvent>;
 	public var signalData(default, null):Signal1<T>;
 	
+	//TODO тут ему не место, вынести в серверПрокси. Коннектор должен получать любые данные
+	// либо переписать таким образом чтобы можно было обойтись без сервер прокси.
 	public var messageClass(default, null):Class<T>;
 	
 	//=========================================================================
