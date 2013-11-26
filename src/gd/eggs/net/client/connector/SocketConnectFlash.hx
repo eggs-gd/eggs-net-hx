@@ -15,7 +15,6 @@ import haxe.Json;
 /**
  * @author Dukobpa3
  */
-@:generic
 class SocketConnectFlash extends BaseConnector implements IConnector {
 	
 	//=========================================================================
