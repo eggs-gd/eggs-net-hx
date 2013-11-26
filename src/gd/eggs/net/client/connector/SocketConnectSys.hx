@@ -1,7 +1,8 @@
-package gd.eggs.net.client;
+package gd.eggs.net.client.connector;
 
 import flash.utils.ByteArray;
-import gd.eggs.net.client.INet;
+import gd.eggs.net.client.IConnection.ConnectConfig;
+import gd.eggs.net.client.IConnection.IConnector;
 import gd.eggs.utils.Validate;
 import haxe.Json;
 import haxe.Timer;

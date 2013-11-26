@@ -1,7 +1,7 @@
-package gd.eggs.net.client;
+package gd.eggs.net.client.connector;
 
 import flash.utils.ByteArray;
-import gd.eggs.net.client.INet.ConnectorEvent;
+import gd.eggs.net.client.IConnection.ConnectorEvent;
 import gd.eggs.utils.DestroyUtils;
 import gd.eggs.utils.IInitialize;
 import gd.eggs.utils.Validate;
