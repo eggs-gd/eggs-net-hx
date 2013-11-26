@@ -1,27 +1,32 @@
 package gd.eggs.net.client;
 
-import gd.eggs.net.client.INet;
+import flash.utils.ByteArray;
+import gd.eggs.net.client.IConnection.ConnectConfig;
+import gd.eggs.net.client.IConnection.ConnectionType;
+import gd.eggs.net.client.IConnection.ConnectorEvent;
+import gd.eggs.net.client.IConnection.IConnector;
+import gd.eggs.net.client.IProcess.IDecoder;
 import gd.eggs.utils.DestroyUtils;
 import gd.eggs.utils.IInitialize;
 import gd.eggs.utils.Validate;
 import msignal.Signal.Signal1;
 
 #if flash
-typedef SocketConnect<T:IMessage> = SocketConnectFlash<T>;
+typedef SocketConnect = gd.eggs.net.client.connector.SocketConnectFlash;
 #else
-typedef SocketConnect<T:IMessage> = SocketConnectSys<T>;
+typedef SocketConnect = gd.eggs.net.client.connector.SocketConnectSys;
 #end
 
 /**
  * @author Dukobpa3
  */
-class ServerProxy<T:IMessage> implements IInitialize {
+class ServerProxy implements IInitialize {
 	
 	//=========================================================================
 	//	CONSTANTS
 	//=========================================================================
 	
-	var CONNECTOR_BY_TYPE:Map<EnumValue, IConnector<T>>;
+	var CONNECTOR_BY_TYPE:Map < EnumValue, Class<IConnector> >;
 	
 	//=========================================================================
 	//	PARAMETERS
@@ -33,7 +38,7 @@ class ServerProxy<T:IMessage> implements IInitialize {
 	public var signalDisconnected(default, null):Signal1<ConnectorEvent>;
 	public var signalError(default, null):Signal1<ConnectorEvent>;
 	public var signalLog(default, null):Signal1<ConnectorEvent>;
-	public var signalData(default, null):Signal1<T>;
+	public var signalData(default, null):Signal1<Dynamic>;
 	
 	/**
 	 * Список доступных вариантов для коннекта
@@ -41,24 +46,26 @@ class ServerProxy<T:IMessage> implements IInitialize {
 	var _connections(default, null):Array<ConnectConfig>;
 	var _currentConnection:ConnectConfig;
 	
-	var _connector(default, null):IConnector<T>;
-	var _messageQueue(default, null):Array<T>;
+	var _connector(default, null):IConnector;
+	var _messageQueue(default, null):Array<Dynamic>;
+	
+	var _decoder(default, null):IDecoder;
 	
 	//=========================================================================
 	//	CONSTRUCTOR
 	//=========================================================================
 	
-	public function new(messageClass:Class<T>, connections:Array<ConnectConfig>) {
+	public function new(decoder:IDecoder, connections:Array<ConnectConfig>) {
 		#if debug
-		if(Validate.isNull(messageClass)) throw "cls is null";
+		if(Validate.isNull(decoder)) throw "decoder is null";
 		if(Validate.isNull(connections)) throw "connections is null";
 		#end
 		
-		CONNECTOR_BY_TYPE = [ 
-			ConnectionType.http => new HttpConnect(messageClass), 
-			ConnectionType.socket => new SocketConnect(messageClass), 
-			ConnectionType.local => new LocalConnect(messageClass) 
+		CONNECTOR_BY_TYPE = [
+			ConnectionType.socket => SocketConnect
 		];
+		
+		_decoder = decoder;
 		
 		_connections = connections;
 		
@@ -76,12 +83,20 @@ class ServerProxy<T:IMessage> implements IInitialize {
 		signalDisconnected = new Signal1<ConnectorEvent>();
 		signalError = new Signal1<ConnectorEvent>();
 		signalLog = new Signal1<ConnectorEvent>();
-		signalData = new Signal1<T>();
+		signalData = new Signal1<Dynamic>();
+		
+		_decoder.signalInvalidPackageSize.add(onDecoderInvalidPackageSize);
+		_decoder.signalInvalidDataType.add(onDecoderInvalidDataType);
+		
+		_decoder.signalReceivingHeader.add(onDecoderReceivingHeader);
+		_decoder.signalInProgress.add(onDecoderProgress);
+		_decoder.signalDone.add(onDecoderDone);
 		
 		isInited = true;
 	}
 	
 	public function destroy() {
+		// TODO destroy konnector and decoder
 		_messageQueue = DestroyUtils.destroy(_messageQueue);
 		
 		signalConnected = DestroyUtils.destroy(signalConnected);
@@ -90,6 +105,13 @@ class ServerProxy<T:IMessage> implements IInitialize {
 		signalLog = DestroyUtils.destroy(signalLog);
 		signalData = DestroyUtils.destroy(signalData);
 		
+		_decoder.signalInvalidPackageSize.remove(onDecoderInvalidPackageSize);
+		_decoder.signalInvalidDataType.remove(onDecoderInvalidDataType);
+		
+		_decoder.signalReceivingHeader.remove(onDecoderReceivingHeader);
+		_decoder.signalInProgress.remove(onDecoderProgress);
+		_decoder.signalDone.remove(onDecoderDone);
+		
 		isInited = false;
 	}
 	
@@ -97,12 +119,10 @@ class ServerProxy<T:IMessage> implements IInitialize {
 		_currentConnection = _connections[connectionId];
 		
 		if (Validate.isNotNull(_connector)) {
-			DestroyUtils.destroy(_connector);
+			_connector = DestroyUtils.destroy(_connector);
 		}
 		
-		_connector = CONNECTOR_BY_TYPE[_currentConnection.type];
-		
-		_connector.init();
+		_connector = Type.createInstance(CONNECTOR_BY_TYPE[_currentConnection.type], []);
 		
 		_connector.signalConectError.add(onConnectorError);
 		_connector.signalConnected.add(onConnectorConnected);
@@ -113,37 +133,44 @@ class ServerProxy<T:IMessage> implements IInitialize {
 		_connector.connect(_currentConnection);
 	}
 	
-	public function sendMessage(message:T) {
+	public function sendMessage(message:Dynamic) {
 		#if debug
 		if(Validate.isNull(message)) throw "message is null";
 		#end
 		
 		//TODO Вкрутить очередь сообщений и таймаут между отправкой
-		_connector.send(message);
+		_connector.send(_decoder.pack(message));
 	}
 	
 	//=========================================================================
 	//	HANDLERS
 	//=========================================================================
+	//---------------------------------
+	//	Connector events
+	//---------------------------------
+	function onConnectorError(event:ConnectorEvent) signalError.dispatch(event);
 	
-	function onConnectorError(event:ConnectorEvent) {
-		signalError.dispatch(event);
-	}
+	function onConnectorConnected(event:ConnectorEvent) signalConnected.dispatch(event);
 	
-	function onConnectorConnected(event:ConnectorEvent) {
-		signalConnected.dispatch(event);
-	}
+	function onConnectorClosed(event:ConnectorEvent) signalDisconnected.dispatch(event);
 	
-	function onConnectorClosed(event:ConnectorEvent) {
-		signalDisconnected.dispatch(event);
-	}
+	function onConnectorLog(event:ConnectorEvent) signalLog.dispatch(event);
 	
-	function onConnectorLog(event:ConnectorEvent) {
-		signalLog.dispatch(event);
-	}
+	function onConnectorData(data:ByteArray) _decoder.parse(data);
 	
-	function onConnectorData(message:T) {
-		signalData.dispatch(message);
-	}
+	//---------------------------------
+	//	Decoder events
+	//---------------------------------
+	function onDecoderDone(data:Dynamic) signalData.dispatch(data);
+	
+	function onDecoderReceivingHeader() signalLog.dispatch({message:"Decoder receiving header", config:_currentConnection});
+	
+	function onDecoderProgress() signalLog.dispatch({message:"Decoder in progress", config:_currentConnection});
+	
+	function onDecoderInvalidPackageSize() signalError.dispatch({message:"Decoder error", config:_currentConnection});
+	
+	function onDecoderInvalidDataType() signalError.dispatch({message:"Decoder error", config:_currentConnection});
+	
+	
 	
 }

@@ -1,6 +1,8 @@
-package gd.eggs.net.client;
+package gd.eggs.net.client.connector;
 
-import gd.eggs.net.client.INet;
+import flash.utils.ByteArray;
+import gd.eggs.net.client.IConnection.ConnectConfig;
+import gd.eggs.net.client.IConnection.IConnector;
 import gd.eggs.utils.Validate;
 import haxe.Json;
 import haxe.Timer;
@@ -19,7 +21,7 @@ import neko.vm.Thread;
 /**
  * @author Dukobpa3
  */
-class SocketConnectSys<T:IMessage> extends BaseConnector<T> implements IConnector<T> {
+class SocketConnectSys extends BaseConnector implements IConnector {
 	
 	//=========================================================================
 	//	PARAMETERS
@@ -32,12 +34,9 @@ class SocketConnectSys<T:IMessage> extends BaseConnector<T> implements IConnecto
 	//	CONSTRUCTOR
 	//=========================================================================
 	
-	public function new(cls:Class<T>) {
-		#if debug
-		if(Validate.isNull(cls)) throw "cls is null";
-		#end
+	public function new() {
 		
-		super(cls);
+		super();
 	}
 	
 	//=========================================================================
@@ -73,12 +72,9 @@ class SocketConnectSys<T:IMessage> extends BaseConnector<T> implements IConnecto
 		signalClosed.dispatch( { message:"socket closed", config:_connectConfig } );
 	}
 	
-	public function send(message:T) {
+	public function send(data:ByteArray) {
 		try {
-			var bytes:Bytes = message.pack();
-			_socket.output.writeBytes(bytes, 0, bytes.length);
-			
-			log({sended:message});
+			_socket.output.writeBytes(data, 0, data.length);
 		} catch (error:Dynamic) {
 			onSocketError(error);
 		}
@@ -98,18 +94,16 @@ class SocketConnectSys<T:IMessage> extends BaseConnector<T> implements IConnecto
 				var sockArray:Array<Socket> = [_socket];
 				var result = Socket.select(sockArray, null, null);
 				for (s in result.read) {
-					//log(s);
-					//var data:Bytes = Bytes.alloc(1);
-					//s.input.readBytes(data, 0, 1);
-					//log({received:message});
-					//mainThread.sendMessage(onSocketData.bind(data));
+					var data:ByteArray = new ByteArray();
+					data.writeByte(s.input.readByte());
+					onSocketData(data);
 				}
 			} catch (error:Dynamic) {
-				if (!Std.is(error, Eof)) {
-					mainThread.sendMessage(onSocketError.bind(error));
-				} else {
-					mainThread.sendMessage(close);
-				}
+				//if (!Std.is(error, Eof)) {
+					onSocketError(error);
+				//} else {
+					close();
+				//}
 			}
 		}
 	}
@@ -127,8 +121,8 @@ class SocketConnectSys<T:IMessage> extends BaseConnector<T> implements IConnecto
 		signalConnected.dispatch( { message:"Connected", config:_connectConfig } );
 	}
 	
-	function onSocketData(message:T) {
-		signalData.dispatch(message);
+	function onSocketData(data:ByteArray) {
+		signalData.dispatch(data);
 	}
 	
 	function onSocketError(event:Dynamic) {
