@@ -75,8 +75,6 @@ class SocketConnectSys extends BaseConnector implements IConnector {
 	public function send(data:ByteArray) {
 		try {
 			_socket.output.writeBytes(data, 0, data.length);
-			
-			log({sended:data});
 		} catch (error:Dynamic) {
 			onSocketError(error);
 		}
@@ -96,18 +94,16 @@ class SocketConnectSys extends BaseConnector implements IConnector {
 				var sockArray:Array<Socket> = [_socket];
 				var result = Socket.select(sockArray, null, null);
 				for (s in result.read) {
-					//log(s);
-					//var data:Bytes = Bytes.alloc(1);
-					//s.input.readBytes(data, 0, 1);
-					//log({received:message});
-					//mainThread.sendMessage(onSocketData.bind(data));
+					var data:ByteArray = new ByteArray();
+					data.writeByte(s.input.readByte());
+					onSocketData(data);
 				}
 			} catch (error:Dynamic) {
-				if (!Std.is(error, Eof)) {
-					mainThread.sendMessage(onSocketError.bind(error));
-				} else {
-					mainThread.sendMessage(close);
-				}
+				//if (!Std.is(error, Eof)) {
+					onSocketError(error);
+				//} else {
+					close();
+				//}
 			}
 		}
 	}

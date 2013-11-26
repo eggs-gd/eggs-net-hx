@@ -84,8 +84,7 @@ class SocketConnectFlash extends BaseConnector implements IConnector {
 			_socket.writeBytes(message, 0, message.length);
 			_socket.flush();
 			
-			var arr:Array<Dynamic> = ["sended", message];
-			log(arr);
+			log({sended:message});
 		} catch (error:Dynamic) {
 			onSocketError(error);
 		}
@@ -120,8 +119,7 @@ class SocketConnectFlash extends BaseConnector implements IConnector {
 		var data:ByteArray = new ByteArray();
 		_socket.readBytes(data);
 		
-		var arr:Array<Dynamic> = ["received", data];
-		log(arr);
+		log({received:data});
 		signalData.dispatch(data);
 	}
 	
