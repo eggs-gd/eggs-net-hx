@@ -21,13 +21,11 @@ import neko.vm.Thread;
 /**
  * @author Dukobpa3
  */
-class SocketConnectSys extends BaseConnector implements IConnector {
+class SocketConnectSys extends AConnector {
 	
 	//=========================================================================
 	//	PARAMETERS
 	//=========================================================================
-	
-	public var connection(default, null):ConnectConfig;
 	
 	var _socket(default, null):Socket;
 	
@@ -35,10 +33,7 @@ class SocketConnectSys extends BaseConnector implements IConnector {
 	//	CONSTRUCTOR
 	//=========================================================================
 	
-	public function new() {
-		
-		super();
-	}
+	public function new() super();
 	
 	//=========================================================================
 	//	PUBLIC
@@ -56,7 +51,7 @@ class SocketConnectSys extends BaseConnector implements IConnector {
 		super.destroy();
 	}
 	
-	public function connect(config:ConnectConfig) {
+	override public function connect(config:ConnectConfig) {
 		#if debug
 		if(Validate.isNull(config)) throw "config is null";
 		#end
@@ -74,13 +69,13 @@ class SocketConnectSys extends BaseConnector implements IConnector {
 		}
 	}
 	
-	public function close() {
+	override public function close() {
 		isOnline = false;
 		_socket.close();
 		signalClosed.dispatch( { message:"socket closed", config:connection } );
 	}
 	
-	public function send(data:ByteArray) {
+	override public function send(data:ByteArray) {
 		try {
 			_socket.output.writeBytes(data, 0, data.length);
 		} catch (error:Dynamic) {
@@ -107,11 +102,8 @@ class SocketConnectSys extends BaseConnector implements IConnector {
 					onSocketData(data);
 				}
 			} catch (error:Dynamic) {
-				//if (!Std.is(error, Eof)) {
-					onSocketError(error);
-				//} else {
-					close();
-				//}
+				onSocketError(error);
+				close();
 			}
 		}
 	}

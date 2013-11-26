@@ -1,8 +1,11 @@
 package gd.eggs.net.client.connector;
 
 import flash.utils.ByteArray;
+import gd.eggs.net.client.IConnection.ConnectConfig;
 import gd.eggs.net.client.IConnection.ConnectorEvent;
+import gd.eggs.net.client.IConnection.IConnector;
 import gd.eggs.utils.DestroyUtils;
+import gd.eggs.utils.IAbstractClass;
 import gd.eggs.utils.IInitialize;
 import gd.eggs.utils.Validate;
 import msignal.Signal.Signal1;
@@ -10,13 +13,15 @@ import msignal.Signal.Signal1;
 /**
  * @author Dukobpa3
  */
-class BaseConnector implements IInitialize {
+class AConnector implements IConnector implements IAbstractClass {
 	//=========================================================================
 	//	PARAMETERS
 	//=========================================================================
 	
 	public var isInited(default, null):Bool;
 	public var isOnline(default, null):Bool;
+	
+	public var connection(default, null):ConnectConfig;
 	
 	public var signalConectError(default, null):Signal1<ConnectorEvent>;
 	public var signalConnected(default, null):Signal1<ConnectorEvent>;
@@ -28,7 +33,7 @@ class BaseConnector implements IInitialize {
 	//	CONSTRUCTOR
 	//=========================================================================
 	
-	public function new() {
+	private function new() {
 		init();
 	}
 	
@@ -55,5 +60,9 @@ class BaseConnector implements IInitialize {
 		
 		isInited = false;
 	}
+	
+	public function connect(config:ConnectConfig);
+	public function send(message:ByteArray);
+	public function close();
 	
 }

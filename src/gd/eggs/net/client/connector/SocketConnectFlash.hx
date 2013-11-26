@@ -15,13 +15,11 @@ import haxe.Json;
 /**
  * @author Dukobpa3
  */
-class SocketConnectFlash extends BaseConnector implements IConnector {
+class SocketConnectFlash extends AConnector {
 	
 	//=========================================================================
 	//	PARAMETERS
 	//=========================================================================
-	
-	public var connection(default, null):ConnectConfig;
 	
 	var _socket(default, null):Socket;
 	
@@ -29,9 +27,7 @@ class SocketConnectFlash extends BaseConnector implements IConnector {
 	//	CONSTRUCTOR
 	//=========================================================================
 	
-	public function new() {
-		super();
-	}
+	public function new() super();
 	
 	//=========================================================================
 	//	PUBLIC
@@ -63,7 +59,7 @@ class SocketConnectFlash extends BaseConnector implements IConnector {
 		super.destroy();
 	}
 	
-	public function connect(config:ConnectConfig) {
+	override public function connect(config:ConnectConfig) {
 		#if debug
 		if(Validate.isNull(config)) throw "config is null";
 		#end
@@ -79,12 +75,12 @@ class SocketConnectFlash extends BaseConnector implements IConnector {
 		}
 	}
 	
-	public function close() {
+	override public function close() {
 		_socket.close();
 		isOnline = false;
 	}
 	
-	public function send(message:ByteArray) {
+	override public function send(message:ByteArray) {
 		#if debug
 		if(Validate.isNull(message)) throw "message is null";
 		#end
