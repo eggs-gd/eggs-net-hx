@@ -5,7 +5,7 @@ import gd.eggs.net.client.IConnection.ConnectConfig;
 import gd.eggs.net.client.IConnection.ConnectionType;
 import gd.eggs.net.client.IConnection.ConnectorEvent;
 import gd.eggs.net.client.IConnection.IConnector;
-import gd.eggs.net.client.IProcess.IDecoder;
+import gd.eggs.net.client.IDecoder;
 import gd.eggs.utils.DestroyUtils;
 import gd.eggs.utils.IInitialize;
 import gd.eggs.utils.Validate;
@@ -49,13 +49,13 @@ class ServerProxy implements IInitialize {
 	var _connector(default, null):IConnector;
 	var _messageQueue(default, null):Array<Dynamic>;
 	
-	var _decoder(default, null):IDecoder;
+	var _decoder(default, null):IDecoder<Dynamic>;
 	
 	//=========================================================================
 	//	CONSTRUCTOR
 	//=========================================================================
 	
-	public function new(decoder:IDecoder, connections:Array<ConnectConfig>) {
+	public function new(decoder:IDecoder<Dynamic>, connections:Array<ConnectConfig>) {
 		#if debug
 		if(Validate.isNull(decoder)) throw "decoder is null";
 		if(Validate.isNull(connections)) throw "connections is null";
