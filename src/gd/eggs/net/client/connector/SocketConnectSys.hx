@@ -49,6 +49,13 @@ class SocketConnectSys extends BaseConnector implements IConnector {
 		super.init();
 	}
 	
+	override public function destroy() {
+		// TODO check closing threads
+		if (isOnline) close();
+		_socket = null;
+		super.destroy();
+	}
+	
 	public function connect(config:ConnectConfig) {
 		#if debug
 		if(Validate.isNull(config)) throw "config is null";

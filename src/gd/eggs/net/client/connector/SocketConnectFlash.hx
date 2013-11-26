@@ -48,6 +48,21 @@ class SocketConnectFlash extends BaseConnector implements IConnector {
 		super.init();
 	}
 	
+	override public function destroy() {
+		
+		if (isOnline) close();
+		
+		_socket.removeEventListener(Event.CONNECT, onSocketConnect);
+		_socket.removeEventListener(Event.CLOSE, onSocketClose);
+		_socket.removeEventListener(IOErrorEvent.IO_ERROR, onSocketError);
+		_socket.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, onSocketError);
+		_socket.removeEventListener(ProgressEvent.SOCKET_DATA, onSocketData);
+	
+		_socket = null;
+		
+		super.destroy();
+	}
+	
 	public function connect(config:ConnectConfig) {
 		#if debug
 		if(Validate.isNull(config)) throw "config is null";
