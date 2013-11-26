@@ -21,8 +21,9 @@ class SocketConnectFlash extends BaseConnector implements IConnector {
 	//	PARAMETERS
 	//=========================================================================
 	
-	var _socket:Socket;
-	var _connectConfig:ConnectConfig;
+	public var connection(default, null):ConnectConfig;
+	
+	var _socket(default, null):Socket;
 	
 	//=========================================================================
 	//	CONSTRUCTOR
@@ -52,11 +53,11 @@ class SocketConnectFlash extends BaseConnector implements IConnector {
 		if(Validate.isNull(config)) throw "config is null";
 		#end
 		
-		_connectConfig = config;
+		connection = config;
 		try {
 			if (isOnline) close();
 			
-			_socket.connect(_connectConfig.server, _connectConfig.port);
+			_socket.connect(connection.server, connection.port);
 			isOnline = true;
 		} catch (error:Dynamic) {
 			onSocketError(error);
@@ -94,7 +95,7 @@ class SocketConnectFlash extends BaseConnector implements IConnector {
 	//=========================================================================
 	
 	function log(data:Dynamic) {
-		signalLog.dispatch( { message:Json.stringify(data), config:_connectConfig } );
+		signalLog.dispatch( { message:Json.stringify(data), config:connection } );
 	}
 	
 	//=========================================================================
@@ -102,16 +103,16 @@ class SocketConnectFlash extends BaseConnector implements IConnector {
 	//=========================================================================
 	
 	function onSocketConnect(event:Event) {
-		signalConnected.dispatch( { message:event.toString(), config:_connectConfig } );
+		signalConnected.dispatch( { message:event.toString(), config:connection } );
 	}
 	
 	function onSocketClose(event:Event) {
 		isOnline = false;
-		signalClosed.dispatch( { message:event.toString(), config:_connectConfig } );
+		signalClosed.dispatch( { message:event.toString(), config:connection } );
 	}
 	
 	function onSocketError(event:Dynamic) {
-		signalConectError.dispatch( { message:event.toString(), config:_connectConfig } );
+		signalConectError.dispatch( { message:event.toString(), config:connection } );
 	}
 	
 	function onSocketData(_) {

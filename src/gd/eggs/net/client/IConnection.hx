@@ -33,6 +33,7 @@ interface IConnector extends IInitialize {
 	//=========================================================================
 	
 	var isOnline(default, null):Bool;
+	var connection(default, null):ConnectConfig;
 	
 	var signalConectError(default, null):Signal1<ConnectorEvent>;
 	var signalConnected(default, null):Signal1<ConnectorEvent>;

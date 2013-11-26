@@ -27,8 +27,9 @@ class SocketConnectSys extends BaseConnector implements IConnector {
 	//	PARAMETERS
 	//=========================================================================
 	
-	var _socket:Socket;
-	var _connectConfig:ConnectConfig;
+	public var connection(default, null):ConnectConfig;
+	
+	var _socket(default, null):Socket;
 	
 	//=========================================================================
 	//	CONSTRUCTOR
@@ -53,10 +54,10 @@ class SocketConnectSys extends BaseConnector implements IConnector {
 		if(Validate.isNull(config)) throw "config is null";
 		#end
 		
-		_connectConfig = config;
+		connection = config;
 		
 		try {
-			_socket.connect(new Host(_connectConfig.server), _connectConfig.port);
+			_socket.connect(new Host(connection.server), connection.port);
 			onSocketConnected();
 			
 			var sendThread:Thread = Thread.create(threadRead);
@@ -69,7 +70,7 @@ class SocketConnectSys extends BaseConnector implements IConnector {
 	public function close() {
 		isOnline = false;
 		_socket.close();
-		signalClosed.dispatch( { message:"socket closed", config:_connectConfig } );
+		signalClosed.dispatch( { message:"socket closed", config:connection } );
 	}
 	
 	public function send(data:ByteArray) {
@@ -109,7 +110,7 @@ class SocketConnectSys extends BaseConnector implements IConnector {
 	}
 	
 	function log(data:Dynamic) {
-		signalLog.dispatch( { message:Json.stringify(data), config:_connectConfig } );
+		signalLog.dispatch( { message:Json.stringify(data), config:connection } );
 	}
 	
 	//=========================================================================
@@ -118,7 +119,7 @@ class SocketConnectSys extends BaseConnector implements IConnector {
 	
 	function onSocketConnected() {
 		isOnline = true;
-		signalConnected.dispatch( { message:"Connected", config:_connectConfig } );
+		signalConnected.dispatch( { message:"Connected", config:connection } );
 	}
 	
 	function onSocketData(data:ByteArray) {
@@ -126,7 +127,7 @@ class SocketConnectSys extends BaseConnector implements IConnector {
 	}
 	
 	function onSocketError(event:Dynamic) {
-		signalConectError.dispatch( { message:Json.stringify(event), config:_connectConfig } );
+		signalConectError.dispatch( { message:Json.stringify(event), config:connection } );
 	}
 
 }
