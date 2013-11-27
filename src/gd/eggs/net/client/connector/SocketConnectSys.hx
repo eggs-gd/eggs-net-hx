@@ -94,7 +94,7 @@ class SocketConnectSys extends AConnector {
 		// now go to working
 		while (isOnline) {
 			// need for speed optimization
-			Sys.sleep(0.2);
+			Sys.sleep(1 / flash.Lib.current.stage.frameRate);
 			
 			var data:ByteArray = new ByteArray();
 			var received:Bool = false;
