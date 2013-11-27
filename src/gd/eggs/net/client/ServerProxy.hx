@@ -1,6 +1,7 @@
 package gd.eggs.net.client;
 
 import flash.utils.ByteArray;
+import gd.eggs.net.client.connector.SocketConnect;
 import gd.eggs.net.client.IConnection.ConnectConfig;
 import gd.eggs.net.client.IConnection.ConnectionType;
 import gd.eggs.net.client.IConnection.ConnectorEvent;
@@ -11,11 +12,6 @@ import gd.eggs.utils.IInitialize;
 import gd.eggs.utils.Validate;
 import msignal.Signal.Signal1;
 
-#if flash
-typedef SocketConnect = gd.eggs.net.client.connector.SocketConnectFlash;
-#elseif sys
-typedef SocketConnect = gd.eggs.net.client.connector.SocketConnectSys;
-#end
 
 /**
  * @author Dukobpa3

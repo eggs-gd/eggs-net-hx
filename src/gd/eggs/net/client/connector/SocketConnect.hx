@@ -1,27 +1,21 @@
 package gd.eggs.net.client.connector;
 
-import flash.utils.ByteArray;
 import gd.eggs.net.client.IConnection.ConnectConfig;
 import gd.eggs.net.client.IConnection.IConnector;
 import gd.eggs.utils.Validate;
+
+import flash.events.Event;
+import flash.events.IOErrorEvent;
+import flash.events.ProgressEvent;
+import flash.events.SecurityErrorEvent;
+import flash.net.Socket;
+import flash.utils.ByteArray;
 import haxe.Json;
-import haxe.Timer;
-import haxe.io.Bytes;
-import haxe.io.Eof;
-
-import sys.net.Host;
-import sys.net.Socket;
-
-#if cpp
-import cpp.vm.Thread;
-#elseif neko
-import neko.vm.Thread;
-#end
 
 /**
  * @author Dukobpa3
  */
-class SocketConnectSys extends AConnector {
+class SocketConnect extends AConnector {
 	
 	//=========================================================================
 	//	PARAMETERS
@@ -41,13 +35,27 @@ class SocketConnectSys extends AConnector {
 	
 	override public function init() {
 		_socket = new Socket();
+		_socket.addEventListener(Event.CONNECT, onSocketConnect);
+		_socket.addEventListener(Event.CLOSE, onSocketClose);
+		_socket.addEventListener(IOErrorEvent.IO_ERROR, onSocketError);
+		_socket.addEventListener(SecurityErrorEvent.SECURITY_ERROR, onSocketError);
+		_socket.addEventListener(ProgressEvent.SOCKET_DATA, onSocketData);
+		
 		super.init();
 	}
 	
 	override public function destroy() {
-		// TODO check closing threads
+		
 		if (isOnline) close();
+		
+		_socket.removeEventListener(Event.CONNECT, onSocketConnect);
+		_socket.removeEventListener(Event.CLOSE, onSocketClose);
+		_socket.removeEventListener(IOErrorEvent.IO_ERROR, onSocketError);
+		_socket.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, onSocketError);
+		_socket.removeEventListener(ProgressEvent.SOCKET_DATA, onSocketData);
+	
 		_socket = null;
+		
 		super.destroy();
 	}
 	
@@ -57,27 +65,35 @@ class SocketConnectSys extends AConnector {
 		#end
 		
 		connection = config;
-		
 		try {
-			_socket.connect(new Host(connection.server), connection.port);
-			onSocketConnected();
+			if (isOnline) close();
 			
-			var sendThread:Thread = Thread.create(threadRead);
-			sendThread.sendMessage(Thread.current());
+			_socket.connect(connection.server, connection.port);
+			isOnline = true;
 		} catch (error:Dynamic) {
 			onSocketError(error);
 		}
 	}
 	
 	override public function close() {
-		isOnline = false;
 		_socket.close();
-		signalClosed.dispatch( { message:"socket closed", config:connection } );
+		isOnline = false;
 	}
 	
-	override public function send(data:ByteArray) {
+	override public function send(message:ByteArray) {
+		#if debug
+		if(Validate.isNull(message)) throw "message is null";
+		#end
+		
 		try {
-			_socket.output.writeBytes(data, 0, data.length);
+			#if debug
+			if (!isOnline) throw "not connected";
+			#end
+			
+			message.position = 0;
+			
+			_socket.writeBytes(message, 0, message.length);
+			_socket.flush();
 		} catch (error:Dynamic) {
 			onSocketError(error);
 		}
@@ -87,41 +103,6 @@ class SocketConnectSys extends AConnector {
 	//	PRIVATE
 	//=========================================================================
 	
-	function threadRead() {
-		// wait for mainThreadLink from outside
-		var mainThread:Thread = Thread.readMessage(true);
-		
-		// now go to working
-		while (isOnline) {
-			// need for speed optimization
-			Sys.sleep(1 / flash.Lib.current.stage.frameRate);
-			
-			var data:ByteArray = new ByteArray();
-			var received:Bool = false;
-			
-			try {
-				
-				while(true) {
-					var sockets = Socket.select([_socket], null, null, 0);
-					if(sockets.read.length > 0) {
-						data.writeByte(_socket.input.readByte());
-						received = true;
-					}
-					else break;
-				}
-				
-				if (received) {
-					onSocketData(data);
-					data.clear();
-					received = false;
-				}
-			
-			} catch(error:Dynamic) {
-				onSocketError(error);
-			}
-		}
-	}
-	
 	function log(data:Dynamic) {
 		signalLog.dispatch( { message:Json.stringify(data), config:connection } );
 	}
@@ -130,17 +111,24 @@ class SocketConnectSys extends AConnector {
 	//	HANDLERS
 	//=========================================================================
 	
-	function onSocketConnected() {
-		isOnline = true;
-		signalConnected.dispatch( { message:"Connected", config:connection } );
+	function onSocketConnect(event:Event) {
+		signalConnected.dispatch( { message:event.toString(), config:connection } );
 	}
 	
-	function onSocketData(data:ByteArray) {
-		signalData.dispatch(data);
+	function onSocketClose(event:Event) {
+		isOnline = false;
+		signalClosed.dispatch( { message:event.toString(), config:connection } );
 	}
 	
 	function onSocketError(event:Dynamic) {
-		signalConectError.dispatch( { message:Json.stringify(event), config:connection } );
+		signalConectError.dispatch( { message:event.toString(), config:connection } );
 	}
-
+	
+	function onSocketData(_) {
+		var data:ByteArray = new ByteArray();
+		_socket.readBytes(data);
+		
+		signalData.dispatch(data);
+	}
+	
 }
