@@ -93,17 +93,29 @@ class SocketConnectSys extends AConnector {
 		
 		// now go to working
 		while (isOnline) {
+			
+			var data:ByteArray = new ByteArray();
+			var received:Bool = false;
+			
 			try {
-				var sockArray:Array<Socket> = [_socket];
-				var result = Socket.select(sockArray, null, null);
-				for (s in result.read) {
-					var data:ByteArray = new ByteArray();
-					data.writeByte(s.input.readByte());
-					onSocketData(data);
+				
+				while(true) {
+					var sockets = Socket.select([_socket], null, null);
+					if(sockets.read.length > 0) {
+						data.writeByte(_socket.input.readByte());
+						received = true;
+					}
+					else break;
 				}
-			} catch (error:Dynamic) {
+				
+				if (received) {
+					onSocketData(data);
+					data.clear();
+					received = false;
+				}
+			
+			} catch(error:Dynamic) {
 				onSocketError(error);
-				close();
 			}
 		}
 	}
