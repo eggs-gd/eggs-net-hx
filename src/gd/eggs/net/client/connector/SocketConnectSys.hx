@@ -100,7 +100,7 @@ class SocketConnectSys extends AConnector {
 			try {
 				
 				while(true) {
-					var sockets = Socket.select([_socket], null, null);
+					var sockets = Socket.select([_socket], null, null, 0);
 					if(sockets.read.length > 0) {
 						data.writeByte(_socket.input.readByte());
 						received = true;
