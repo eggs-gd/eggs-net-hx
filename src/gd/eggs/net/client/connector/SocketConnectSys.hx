@@ -93,6 +93,8 @@ class SocketConnectSys extends AConnector {
 		
 		// now go to working
 		while (isOnline) {
+			// need for speed optimization
+			Sys.sleep(0.2);
 			
 			var data:ByteArray = new ByteArray();
 			var received:Bool = false;
