@@ -126,6 +126,7 @@ class ServerProxy implements IInitialize {
 	public function sendMessage(message:Dynamic) {
 		#if debug
 		if(Validate.isNull(message)) throw "message is null";
+		if(Validate.isNull(_connector)) throw "_connector is null, need to connect before";
 		#end
 		
 		//TODO Вкрутить очередь сообщений и таймаут между отправкой
