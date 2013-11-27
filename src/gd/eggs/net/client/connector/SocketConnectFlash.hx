@@ -94,8 +94,6 @@ class SocketConnectFlash extends AConnector {
 			
 			_socket.writeBytes(message, 0, message.length);
 			_socket.flush();
-			
-			log({sended:message});
 		} catch (error:Dynamic) {
 			onSocketError(error);
 		}
@@ -130,7 +128,6 @@ class SocketConnectFlash extends AConnector {
 		var data:ByteArray = new ByteArray();
 		_socket.readBytes(data);
 		
-		log({received:data});
 		signalData.dispatch(data);
 	}
 	
