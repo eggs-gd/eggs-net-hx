@@ -8,7 +8,6 @@ import gd.eggs.net.client.IConnection.ConnectorEvent;
 import gd.eggs.net.client.IConnection.IConnector;
 import gd.eggs.net.client.IDecoder;
 import gd.eggs.utils.DestroyUtils;
-import gd.eggs.utils.GlobalTimer;
 import gd.eggs.utils.IInitialize;
 import gd.eggs.utils.Validate;
 import msignal.Signal.Signal1;
