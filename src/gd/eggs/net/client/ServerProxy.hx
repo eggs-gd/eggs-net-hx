@@ -128,7 +128,7 @@ class ServerProxy implements IInitialize {
 		_messageQueue.push(message);
 		
 		if (_messageQueue.length == 1) {
-			haxe.Timer.delay(sendNext, 5);
+			haxe.Timer.delay(sendNext, 1);
 		}
 		
 	}
@@ -137,7 +137,7 @@ class ServerProxy implements IInitialize {
 		_connector.send(_decoder.pack(_messageQueue.shift()));
 		
 		if (_messageQueue.length > 0) {
-			haxe.Timer.delay(sendNext, 5);
+			haxe.Timer.delay(sendNext, 1);
 		}
 		
 	}
