@@ -8,6 +8,7 @@ import gd.eggs.net.client.IConnection.ConnectorEvent;
 import gd.eggs.net.client.IConnection.IConnector;
 import gd.eggs.net.client.IDecoder;
 import gd.eggs.utils.DestroyUtils;
+import gd.eggs.utils.GlobalTimer;
 import gd.eggs.utils.IInitialize;
 import gd.eggs.utils.Validate;
 import msignal.Signal.Signal1;
@@ -125,8 +126,21 @@ class ServerProxy implements IInitialize {
 		if(Validate.isNull(_connector)) throw "_connector is null, need to connect before";
 		#end
 		
-		//TODO Вкрутить очередь сообщений и таймаут между отправкой
-		_connector.send(_decoder.pack(message));
+		_messageQueue.push(message);
+		
+		if (_messageQueue.length == 1) {
+			haxe.Timer.delay(sendNext, 5);
+		}
+		
+	}
+	
+	function sendNext() {
+		_connector.send(_decoder.pack(_messageQueue.shift()));
+		
+		if (_messageQueue.length > 0) {
+			haxe.Timer.delay(sendNext, 5);
+		}
+		
 	}
 	
 	//=========================================================================
@@ -157,7 +171,5 @@ class ServerProxy implements IInitialize {
 	function onDecoderInvalidPackageSize() signalError.dispatch({message:"Decoder error", config:_connector.connection});
 	
 	function onDecoderInvalidDataType() signalError.dispatch({message:"Decoder error", config:_connector.connection});
-	
-	
 	
 }
