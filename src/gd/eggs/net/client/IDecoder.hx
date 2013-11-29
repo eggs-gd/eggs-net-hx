@@ -9,7 +9,7 @@ import flash.utils.ByteArray;
  * @author Dukobpa3
  */
 
-interface IDecoder<T> {
+interface IDecoder<TSend, TReceive> {
 	
 	//=========================================================================
 	//	PARAMETERS
@@ -23,12 +23,12 @@ interface IDecoder<T> {
 	var signalInProgress(default, null):Signal0;
 	var signalReceivingHeader(default, null):Signal0;
 	
-	var signalDone(default, null):Signal1<T>;
+	var signalDone(default, null):Signal1<TReceive>;
 	
 	//=========================================================================
 	//	METHODS
 	//=========================================================================
 	
 	function parse(data:ByteArray):Void;
-	function pack(message:T):ByteArray;
+	function pack(message:TSend):ByteArray;
 }

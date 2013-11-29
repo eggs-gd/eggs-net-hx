@@ -39,13 +39,13 @@ class ServerProxy implements IInitialize {
 	var _connector(default, null):IConnector;
 	var _messageQueue(default, null):Array<Dynamic>;
 	
-	var _decoder(default, null):IDecoder<Dynamic>;
+	var _decoder(default, null):IDecoder<Dynamic, Dynamic>;
 	
 	//=========================================================================
 	//	CONSTRUCTOR
 	//=========================================================================
 	
-	public function new(decoder:IDecoder<Dynamic>) {
+	public function new(decoder:IDecoder<Dynamic, Dynamic>) {
 		#if debug
 		if(Validate.isNull(decoder)) throw "decoder is null";
 		#end
@@ -125,21 +125,7 @@ class ServerProxy implements IInitialize {
 		if(Validate.isNull(_connector)) throw "_connector is null, need to connect before";
 		#end
 		
-		_messageQueue.push(message);
-		
-		if (_messageQueue.length == 1) {
-			haxe.Timer.delay(sendNext, 1);
-		}
-		
-	}
-	
-	function sendNext() {
-		_connector.send(_decoder.pack(_messageQueue.shift()));
-		
-		if (_messageQueue.length > 0) {
-			haxe.Timer.delay(sendNext, 1);
-		}
-		
+		_connector.send(_decoder.pack(message));
 	}
 	
 	//=========================================================================
