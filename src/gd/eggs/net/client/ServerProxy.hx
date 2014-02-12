@@ -1,6 +1,7 @@
 package gd.eggs.net.client;
 
 import flash.utils.ByteArray;
+import gd.eggs.net.client.connector.HttpConnect;
 import gd.eggs.net.client.connector.SocketConnect;
 import gd.eggs.net.client.IConnection.ConnectConfig;
 import gd.eggs.net.client.IConnection.ConnectionType;
@@ -51,7 +52,8 @@ class ServerProxy implements IInitialize {
 		#end
 		
 		CONNECTOR_BY_TYPE = [
-			ConnectionType.socket => SocketConnect
+			ConnectionType.socket => SocketConnect,
+			ConnectionType.http => HttpConnect,
 		];
 		
 		_decoder = decoder;
