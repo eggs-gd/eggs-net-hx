@@ -1,8 +1,6 @@
 package gd.eggs.net.client;
 
 import flash.utils.ByteArray;
-import gd.eggs.net.client.connector.HttpConnect;
-import gd.eggs.net.client.connector.SocketConnect;
 import gd.eggs.net.client.IConnection.ConnectConfig;
 import gd.eggs.net.client.IConnection.ConnectionType;
 import gd.eggs.net.client.IConnection.ConnectorEvent;
@@ -23,8 +21,6 @@ class ServerProxy implements IInitialize {
 	//	CONSTANTS
 	//=========================================================================
 	
-	var CONNECTOR_BY_TYPE:Map < EnumValue, Class<IConnector> >;
-	
 	//=========================================================================
 	//	PARAMETERS
 	//=========================================================================
@@ -38,25 +34,22 @@ class ServerProxy implements IInitialize {
 	public var signalData(default, null):Signal1<Dynamic>;
 	
 	var _connector(default, null):IConnector;
-	var _messageQueue(default, null):Array<Dynamic>;
-	
 	var _decoder(default, null):IDecoder<Dynamic, Dynamic>;
+	
+	var _messageQueue(default, null):Array<Dynamic>;
 	
 	//=========================================================================
 	//	CONSTRUCTOR
 	//=========================================================================
 	
-	public function new(decoder:IDecoder<Dynamic, Dynamic>) {
+	public function new(decoder:IDecoder<Dynamic, Dynamic>, connector:IConnector) {
 		#if debug
 		if(Validate.isNull(decoder)) throw "decoder is null";
+		if(Validate.isNull(connector)) throw "connector is null";
 		#end
 		
-		CONNECTOR_BY_TYPE = [
-			ConnectionType.socket => SocketConnect,
-			ConnectionType.http => HttpConnect,
-		];
-		
 		_decoder = decoder;
+		_connector = connector;
 		
 		init();
 	}
@@ -81,6 +74,12 @@ class ServerProxy implements IInitialize {
 		_decoder.signalInProgress.add(onDecoderProgress);
 		_decoder.signalDone.add(onDecoderDone);
 		
+		_connector.signalConectError.add(onConnectorError);
+		_connector.signalConnected.add(onConnectorConnected);
+		_connector.signalClosed.add(onConnectorClosed);
+		_connector.signalData.add(onConnectorData);
+		_connector.signalLog.add(onConnectorLog);
+		
 		isInited = true;
 	}
 	
@@ -101,24 +100,29 @@ class ServerProxy implements IInitialize {
 		_decoder.signalInProgress.remove(onDecoderProgress);
 		_decoder.signalDone.remove(onDecoderDone);
 		
+		_connector.signalConectError.remove(onConnectorError);
+		_connector.signalConnected.remove(onConnectorConnected);
+		_connector.signalClosed.remove(onConnectorClosed);
+		_connector.signalData.remove(onConnectorData);
+		_connector.signalLog.remove(onConnectorLog);
+		
 		isInited = false;
 	}
 	
 	public function connect(connection) {
 		
-		if (Validate.isNotNull(_connector)) {
-			_connector = DestroyUtils.destroy(_connector);
+		if (_connector.isOnline) {
+			_connector.close();
 		}
 		
-		_connector = Type.createInstance(CONNECTOR_BY_TYPE[connection.type], []);
-		
-		_connector.signalConectError.add(onConnectorError);
-		_connector.signalConnected.add(onConnectorConnected);
-		_connector.signalClosed.add(onConnectorClosed);
-		_connector.signalData.add(onConnectorData);
-		_connector.signalLog.add(onConnectorLog);
-		
 		_connector.connect(connection);
+	}
+	
+	public function close() {
+		
+		if (_connector.isOnline) {
+			_connector.close();
+		}
 	}
 	
 	public function sendMessage(message:Dynamic) {

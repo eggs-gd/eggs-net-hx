@@ -15,7 +15,6 @@ enum ConnectionType {
 }
 
 typedef ConnectConfig = {
-	type:EnumValue,
 	server:String,
 	port:Int,
 	?id:String
